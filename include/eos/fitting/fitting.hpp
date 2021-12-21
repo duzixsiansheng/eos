@@ -35,7 +35,7 @@
 #include "eos/fitting/closest_edge_fitting.hpp"
 #include "eos/fitting/RenderingParameters.hpp"
 #include "eos/cpp17/optional.hpp"
-
+#include "eos/cpp17/variant.hpp"
 #include "Eigen/Core"
 
 #include <algorithm>
@@ -362,11 +362,11 @@ inline std::pair<core::Mesh, fitting::RenderingParameters> fit_shape_and_pose(
     }
     // Todo: This leaves the following case open: num_coeffs given is empty or defined, but the
     // pca_shape_coefficients given is != num_coeffs or the model's max-coeffs. What to do then? Handle & document!
-
-    /*if (expression_coefficients.empty())
-    {
-        expression_coefficients.resize(blendshapes.size());
-    }*/
+    const auto& blendshapes = eos::cpp17::get<eos::morphablemodel::Blendshapes>(morphable_model.get_expression_model().value()); 
+    //if (expression_coefficients.empty())
+    //{
+    expression_coefficients.resize(blendshapes.size());
+    //}
 
     // Current mesh - either from the given coefficients, or the mean:
     VectorXf current_pca_shape = morphable_model.get_shape_model().draw_sample(pca_shape_coefficients);
@@ -433,9 +433,9 @@ inline std::pair<core::Mesh, fitting::RenderingParameters> fit_shape_and_pose(
 
     const Eigen::Matrix<float, 3, 4> affine_from_ortho =
         fitting::get_3x4_affine_camera_matrix(rendering_params, image_width, image_height);
-    expression_coefficients =
-        fit_expressions(morphable_model.get_expression_model().value(), current_pca_shape, affine_from_ortho,
-                        image_points, vertex_indices, lambda_expressions, num_expression_coefficients_to_fit);
+    //expression_coefficients =
+    //    fit_expressions(morphable_model.get_expression_model().value(), current_pca_shape, affine_from_ortho,
+    //                    image_points, vertex_indices, lambda_expressions, num_expression_coefficients_to_fit);
 
     // Mesh with same PCA coeffs as before, but new expression fit (this is relevant if no initial blendshape coeffs have been given):
     current_combined_shape = current_pca_shape + draw_sample(morphable_model.get_expression_model().value(),
@@ -518,13 +518,14 @@ inline std::pair<core::Mesh, fitting::RenderingParameters> fit_shape_and_pose(
 
         // Estimate the blendshape coefficients with the current PCA model estimate:
         current_pca_shape = morphable_model.get_shape_model().draw_sample(pca_shape_coefficients);
-        expression_coefficients = fit_expressions(
-            morphable_model.get_expression_model().value(), current_pca_shape, affine_from_ortho,
-            image_points, vertex_indices, lambda_expressions, num_expression_coefficients_to_fit);
+        //expression_coefficients = fit_expressions(
+        //    morphable_model.get_expression_model().value(), current_pca_shape, affine_from_ortho,
+         //   image_points, vertex_indices, lambda_expressions, num_expression_coefficients_to_fit);
 
         current_combined_shape =
-            current_pca_shape +
-            draw_sample(morphable_model.get_expression_model().value(), expression_coefficients);
+            current_pca_shape ;
+           // +
+           // draw_sample(morphable_model.get_expression_model().value(), expression_coefficients);
         current_mesh = morphablemodel::sample_to_mesh(
             current_combined_shape, morphable_model.get_color_model().get_mean(),
             morphable_model.get_shape_model().get_triangle_list(),
@@ -578,7 +579,7 @@ inline std::pair<core::Mesh, fitting::RenderingParameters> fit_shape_and_pose(
     const core::LandmarkCollection<Eigen::Vector2f>& landmarks, const core::LandmarkMapper& landmark_mapper,
     int image_width, int image_height, const morphablemodel::EdgeTopology& edge_topology,
     const fitting::ContourLandmarks& contour_landmarks, const fitting::ModelContour& model_contour,
-    int num_iterations = 5, cpp17::optional<int> num_shape_coefficients_to_fit = cpp17::nullopt,
+    int num_iterations = 500, cpp17::optional<int> num_shape_coefficients_to_fit = cpp17::nullopt,
     float lambda_identity = 50.0f, cpp17::optional<int> num_expression_coefficients_to_fit = cpp17::nullopt,
     cpp17::optional<float> lambda_expressions = cpp17::nullopt)
 {
