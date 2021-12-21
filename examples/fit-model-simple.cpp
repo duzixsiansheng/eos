@@ -72,13 +72,13 @@ int main(int argc, char* argv[])
         // clang-format off
         desc.add_options()
             ("help,h", "display the help message")
-            ("model,m", po::value<string>(&modelfile)->required()->default_value("../share/sfm_shape_3448.bin"),
+            ("model,m", po::value<string>(&modelfile)->required()->default_value("../share/4dfm_head_highres_v1.2_blendshapes_with_colour.bin"),
                 "a Morphable Model stored as cereal BinaryArchive")
             ("image,i", po::value<string>(&imagefile)->required()->default_value("data/image_0010.png"),
                 "an input image")
             ("landmarks,l", po::value<string>(&landmarksfile)->required()->default_value("data/image_0010.pts"),
                 "2D landmarks for the image, in ibug .pts format")
-            ("mapping,p", po::value<string>(&mappingsfile)->required()->default_value("../share/ibug_to_sfm.txt"),
+            ("mapping,p", po::value<string>(&mappingsfile)->required()->default_value("../share/ibug68_landmark_mappings.txt"),
                 "landmark identifier to model vertex number mapping")
             ("output,o", po::value<string>(&outputbasename)->required()->default_value("out"),
                 "basename for the output rendering and obj files");
@@ -110,15 +110,27 @@ int main(int argc, char* argv[])
         cout << "Error reading the landmarks: " << e.what() << endl;
         return EXIT_FAILURE;
     }
+
+    
+    
     morphablemodel::MorphableModel morphable_model;
     try
     {
         morphable_model = morphablemodel::load_model(modelfile);
+	
     } catch (const std::runtime_error& e)
+    
+       
+    
     {
         cout << "Error loading the Morphable Model: " << e.what() << endl;
         return EXIT_FAILURE;
     }
+    
+    
+
+    
+    
     // The landmark mapper is used to map 2D landmark points (e.g. from the ibug scheme) to vertex ids:
     core::LandmarkMapper landmark_mapper;
     try

@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
         mappingsfile.empty() ? core::LandmarkMapper() : core::LandmarkMapper(mappingsfile.string());
 
     std::vector<eos::morphablemodel::Blendshape> blendshapes =
-        eos::morphablemodel::load_blendshapes(blendshapesfile.string());
+        eos::morphablemodel::load_blendshapes(modelfile.string());
 
     // Draw the loaded landmarks:
     Mat outimg = image.clone();

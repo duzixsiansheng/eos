@@ -65,7 +65,7 @@ using std::vector;
  */
 int main(int argc, char* argv[])
 {
-    string modelfile, imagefile, landmarksfile, mappingsfile, contourfile, edgetopologyfile, blendshapesfile,
+    string modelfile, imagefile, landmarksfile, mappingsfile, contourfile, edgetopologyfile,
         outputbasename;
     try
     {
@@ -73,20 +73,20 @@ int main(int argc, char* argv[])
         // clang-format off
         desc.add_options()
             ("help,h", "display the help message")
-            ("model,m", po::value<string>(&modelfile)->required()->default_value("../share/sfm_shape_3448.bin"),
+            ("model,m", po::value<string>(&modelfile)->required()->default_value("../share/4dfm_head_highres_v1.2_blendshapes_with_colour.bin"),
                 "a Morphable Model stored as cereal BinaryArchive")
             ("image,i", po::value<string>(&imagefile)->required()->default_value("data/image_0010.png"),
                 "an input image")
             ("landmarks,l", po::value<string>(&landmarksfile)->required()->default_value("data/image_0010.pts"),
                 "2D landmarks for the image, in ibug .pts format")
-            ("mapping,p", po::value<string>(&mappingsfile)->required()->default_value("../share/ibug_to_sfm.txt"),
+            ("mapping,p", po::value<string>(&mappingsfile)->required()->default_value("../share/ibug68_landmark_mappings.txt"),
                 "landmark identifier to model vertex number mapping")
-            ("model-contour,c", po::value<string>(&contourfile)->required()->default_value("../share/sfm_model_contours.json"),
+            ("model-contour,c", po::value<string>(&contourfile)->required()->default_value("../share/4dfm_head_v1.0_model_contours.json"),
                 "file with model contour indices")
-            ("edge-topology,e", po::value<string>(&edgetopologyfile)->required()->default_value("../share/sfm_3448_edge_topology.json"),
+            ("edge-topology,e", po::value<string>(&edgetopologyfile)->required()->default_value("../share/4dfm_head_highres_v1.0_edge_topology.json"),
                 "file with model's precomputed edge topology")
-            ("blendshapes,b", po::value<string>(&blendshapesfile)->required()->default_value("../share/expression_blendshapes_3448.bin"),
-                "file with blendshapes")
+            //("blendshapes,b", po::value<string>(&blendshapesfile)->required()->default_value("../share/expression_blendshapes_3448.bin"),
+            //    "file with blendshapes")
             ("output,o", po::value<string>(&outputbasename)->required()->default_value("out"),
                 "basename for the output rendering and obj files");
         // clang-format on
@@ -138,11 +138,10 @@ int main(int argc, char* argv[])
     }
 
     // The expression blendshapes:
-    const vector<morphablemodel::Blendshape> blendshapes = morphablemodel::load_blendshapes(blendshapesfile);
+    //const vector<morphablemodel::Blendshape> blendshapes = modelfile;
+    //const vector<morphablemodel::Blendshape> blendshapes = morphablemodel::load_blendshapes(modelfile);
 
-    morphablemodel::MorphableModel morphable_model_with_expressions(
-        morphable_model.get_shape_model(), blendshapes, morphable_model.get_color_model(), cpp17::nullopt,
-        morphable_model.get_texture_coordinates());
+    morphablemodel::MorphableModel morphable_model_with_expressions = morphable_model;
 
     // These two are used to fit the front-facing contour to the ibug contour landmarks:
     const fitting::ModelContour model_contour =
@@ -163,9 +162,10 @@ int main(int argc, char* argv[])
     // Fit the model, get back a mesh and the pose:
     core::Mesh mesh;
     fitting::RenderingParameters rendering_params;
+    //80.0f
     std::tie(mesh, rendering_params) = fitting::fit_shape_and_pose(
         morphable_model_with_expressions, landmarks, landmark_mapper, image.cols, image.rows, edge_topology,
-        ibug_contour, model_contour, 5, cpp17::nullopt, 30.0f);
+        ibug_contour, model_contour, 5, cpp17::nullopt, 0.5f);
 
     // The 3D head pose can be recovered as follows:
     float yaw_angle = glm::degrees(glm::yaw(rendering_params.get_rotation()));
